@@ -106,13 +106,29 @@ Sigilo profissional: nunca peça documento sensível por aqui; isso é na consul
 ## 6. Follow-ups
 
 Os três modelos estão em `lib/followup/modelos/advocacia.ts` e aparecem como modelos prontos em
-IA › Follow-ups.
+IA › Follow-ups. Todas as mensagens abrem com saudação e o primeiro nome ("Oi Perseu!"); contato
+sem nome recebe "Oi!".
 
 | Fluxo | Gatilho | Passos |
 |---|---|---|
-| Triagem parada | silêncio de 1 dia em *Entendendo o caso*, cancela ao responder | "conseguiu ver os horários para a consulta?" → espera 2 dias → última mensagem → fim |
-| Faltou à consulta | falta registrada na agenda | espera 1 dia → oferecer novo horário → fim |
-| Proposta sem resposta | entrada na etapa *Consulta realizada* | espera 3 dias → "ficou alguma dúvida sobre a proposta?" → espera 4 dias → última tentativa → fim |
+| Triagem parada | 24 h sem o cliente responder; roda **uma vez por pessoa**; cancela ao responder | **10 mensagens**: a 1ª quando o silêncio completa 24 h; depois 2, 2, 2 e 2 dias (dia sim, dia não); depois 7, 14, 30, 60 e 90 dias. A 10ª é a despedida |
+| Faltou à consulta | falta registrada na agenda | espera 2 horas → oferecer novo horário → espera 2 dias → pedir dia e período → espera 5 dias → última tentativa → fim |
+| Proposta sem resposta | entrada na etapa *Consulta realizada* | espera 3 dias → "ficou alguma dúvida sobre a proposta?" → espera 4 dias → oferecer conversa com o advogado → espera 7 dias → último lembrete → fim |
+
+**Quando a Triagem para:** depois da 10ª mensagem; quando a pessoa **responde qualquer coisa** (a
+inscrição é cancelada e quem atende assume); e quando ela pede para não receber mais mensagens (a
+detecção de "parar" bloqueia o contato). Como roda uma vez por pessoa, o fim da cadência não
+recomeça outra.
+
+**Ajustar pela tela:** em IA › Follow-ups, abra o fluxo, clique numa caixa de *espera* e troque o
+valor e a unidade (minutos, horas ou dias). O texto de cada mensagem se edita na caixa de
+mensagem; "Uma vez por pessoa" fica no gatilho. Cada espera vai de 5 minutos a **90 dias**: para
+180 dias ou 1 ano, ponha duas ou mais esperas seguidas. O caminho tem teto de 30 passos (mensagem
++ espera), então cabem uns 15 toques.
+
+⚠️ O combinado era "180 dias e 1 ano" depois do 90, mas também "parar depois de 10". As duas coisas
+não cabem juntas (a cadência listada tem 12 toques), então o modelo vem com 10. Para ter os 12,
+acrescente os dois toques no fim e uma espera extra antes do 12º.
 
 O lembrete da consulta é a **agenda**, não follow-up.
 

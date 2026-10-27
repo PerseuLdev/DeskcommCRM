@@ -97,7 +97,9 @@ atendimento próprios. Para a fase de testes da Advocacia Modelo, um agente só.
 - **IA › Memória (regras da casa)**: horário de atendimento; quem atende cada área; "não atendemos
   {área}"; "urgência criminal fora do horário: {telefone de plantão}".
 - **IA › Follow-ups** (publicar e ligar no agente, no campo *follow-ups que arma*):
-  - silêncio de 24 h em *Entendendo o caso*: "conseguiu ver os horários para a consulta?";
+  - silêncio de 24 h: **10 mensagens**, a primeira quando o silêncio completa 24 h, depois a cada 2
+    dias (cinco primeiras) e em 7, 14, 30, 60 e 90 dias; para se a pessoa responder ou pedir para parar
+    (detalhes e como ajustar em [pacote-advocacia-modelo.md](pacote-advocacia-modelo.md), seção 6);
   - consulta marcada e falta (no-show): oferecer novo horário no dia seguinte;
   - 3 dias em *Consulta realizada* sem resposta à proposta: "ficou alguma dúvida sobre a
     proposta?"; 7 dias: última tentativa e registrar o motivo da perda.
