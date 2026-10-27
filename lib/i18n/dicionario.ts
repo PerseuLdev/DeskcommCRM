@@ -2873,6 +2873,12 @@ export const DICIONARIO: Traducoes = {
   "A IA escolhe a hora": { es: "La IA elige el momento" },
   "Como calcular a espera": { es: "Cómo calcular la espera" },
   "Duração (minutos)": { es: "Duración (minutos)" },
+  "Duração (horas)": { es: "Duración (horas)" },
+  "Duração (dias)": { es: "Duración (días)" },
+  "Unidade da espera": { es: "Unidad de la espera" },
+  "Cada espera vai de 5 minutos a 90 dias. Para esperar mais, use duas esperas seguidas.": {
+    es: "Cada espera va de 5 minutos a 90 días. Para esperar más, usa dos esperas seguidas.",
+  },
   "Mínimo (min)": { es: "Mínimo (min)" },
   "Máximo (min)": { es: "Máximo (min)" },
   "Orientação (opcional)": { es: "Orientación (opcional)" },

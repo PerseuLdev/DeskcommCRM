@@ -16,6 +16,13 @@ import { waitConfigSchema } from "@/lib/followup/graph-schema";
 import { MODOS_DE_ESPERA, opcoes } from "@/lib/followup/vocabulario";
 import { useT } from "@/hooks/i18n/useT";
 
+import {
+  paraMinutos,
+  unidadeNatural,
+  valorNaUnidade,
+  type UnidadeDeEspera,
+} from "@/lib/followup/unidade-da-espera";
+
 import { msToMin, minToMs, type ConfigOf } from "./shared";
 
 export function WaitForm({
@@ -29,6 +36,11 @@ export function WaitForm({
   const [mode, setMode] = useState<"fixed" | "smart">(config.mode);
   const [durationMin, setDurationMin] = useState(
     config.mode === "fixed" ? msToMin(config.duration_ms) : 10,
+  );
+  // A espera fixa se lê na unidade que a pessoa escreveria (2 dias, e não 2880 minutos); o
+  // `durationMin` segue sendo a fonte da verdade, e o que vai ao fio é sempre ms.
+  const [unidade, setUnidade] = useState<UnidadeDeEspera>(
+    unidadeNatural(config.mode === "fixed" ? msToMin(config.duration_ms) : 10),
   );
   const [minMin, setMinMin] = useState(config.mode === "smart" ? msToMin(config.min_ms) : 5);
   const [maxMin, setMaxMin] = useState(config.mode === "smart" ? msToMin(config.max_ms) : 60);
@@ -87,18 +99,40 @@ export function WaitForm({
 
       {mode === "fixed" ? (
         <div className="space-y-2">
-          <Label htmlFor="wait-duration">{t("Duração (minutos)")}</Label>
-          <Input
-            id="wait-duration"
-            type="number"
-            min={5}
-            value={durationMin}
-            onChange={(e) => {
-              const v = Number(e.target.value);
-              setDurationMin(v);
-              commit({ mode, durationMin: v, minMin, maxMin, guidance });
-            }}
-          />
+          <Label htmlFor="wait-duration">
+            {unidade === "days"
+              ? t("Duração (dias)")
+              : unidade === "hours"
+                ? t("Duração (horas)")
+                : t("Duração (minutos)")}
+          </Label>
+          <div className="grid grid-cols-[1fr_auto] gap-2">
+            <Input
+              id="wait-duration"
+              type="number"
+              min={unidade === "minutes" ? 5 : undefined}
+              step={1}
+              value={valorNaUnidade(durationMin, unidade)}
+              onChange={(e) => {
+                const v = paraMinutos(Number(e.target.value), unidade);
+                setDurationMin(v);
+                commit({ mode, durationMin: v, minMin, maxMin, guidance });
+              }}
+            />
+            <Select value={unidade} onValueChange={(v) => setUnidade(v as UnidadeDeEspera)}>
+              <SelectTrigger aria-label={t("Unidade da espera")} className="w-28">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="minutes">{t("minutos")}</SelectItem>
+                <SelectItem value="hours">{t("horas")}</SelectItem>
+                <SelectItem value="days">{t("dias")}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {t("Cada espera vai de 5 minutos a 90 dias. Para esperar mais, use duas esperas seguidas.")}
+          </p>
         </div>
       ) : (
         <>
