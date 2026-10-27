@@ -16,7 +16,9 @@ import { validateFlowForPublish } from "@/lib/followup/validate-publish";
 
 import { MODELOS_DE_FOLLOWUP, modeloPorId, modelosDoNicho } from "./index";
 import { horizonteDoModeloMs, toquesDoModelo } from "./tipos";
-import { montarEscada, rotuloDaEspera } from "./escada";
+import { renderizarTextoDeFollowup } from "@/lib/automation/texto-do-followup";
+
+import { montarCadencia, montarEscada, rotuloDaEspera } from "./escada";
 
 const ETAPA = "44444444-4444-4444-8444-444444444444";
 const DIA_MS = 86_400_000;
@@ -73,12 +75,16 @@ describe("catálogo de modelos de follow-up", () => {
       );
     });
 
-    it("nenhum texto interpola campo da ficha — é o que impede dado de saúde de vazar na mensagem", () => {
+    it("nenhum texto interpola campo da ficha — é o que impede dado sensível de vazar na mensagem", () => {
+      // Clínica não interpola NADA (dado de saúde). Advocacia interpola só o primeiro nome, a
+      // pedido de quem opera: o que NÃO entra, em nenhum nicho, é campo da ficha, assunto ou caso.
+      const permitidas = modelo.nicho === "advocacia" ? new Set(["primeiro_nome"]) : new Set<string>();
       for (const no of modelo.grafo.nodes) {
         if (no.type !== "action") continue;
         expect(no.config.mode).toBe("text");
         const corpo = no.config.mode === "text" ? no.config.body : "";
-        expect(corpo).not.toMatch(/\{\{/);
+        const usadas = [...corpo.matchAll(/\{\{\s*([\w.]+)\s*\}\}/g)].map((m) => m[1]);
+        expect(usadas.filter((u) => !permitidas.has(u!))).toEqual([]);
         expect(corpo.trim().length).toBeGreaterThan(20);
       }
     });
@@ -156,5 +162,65 @@ describe("escada de toques", () => {
     expect(rotuloDaEspera(DIA_MS)).toBe("Espera 1 dia");
     expect(rotuloDaEspera(21 * DIA_MS)).toBe("Espera 21 dias");
     expect(rotuloDaEspera(2 * 3_600_000)).toBe("Espera 2 horas");
+  });
+});
+
+describe("advocacia · triagem em cadência longa", () => {
+  const triagem = modeloPorId("advocacia-triagem-retomada")!;
+  const esperasEmDias = triagem.grafo.nodes.flatMap((n) =>
+    n.type === "wait" && n.config.mode === "fixed" ? [n.config.duration_ms / DIA_MS] : [],
+  );
+  const textos = triagem.grafo.nodes.flatMap((n) =>
+    n.type === "action" && n.config.mode === "text" ? [n.config.body] : [],
+  );
+
+  it("manda dez mensagens: dia sim, dia não nas cinco primeiras, depois 7, 14, 30, 60 e 90 dias", () => {
+    expect(toquesDoModelo(triagem.grafo)).toBe(10);
+    // Nove esperas: o primeiro toque sai quando o silêncio de 24 h é detectado, sem espera própria.
+    expect(esperasEmDias).toEqual([2, 2, 2, 2, 7, 14, 30, 60, 90]);
+  });
+
+  it("nenhuma espera passa de 90 dias — o teto do nó; intervalo maior se faz encadeando", () => {
+    expect(Math.max(...esperasEmDias)).toBeLessThanOrEqual(90);
+  });
+
+  it("a cadência roda uma vez por pessoa: sem o teto, a varredura recomeçaria os dez toques depois do último", () => {
+    const cfg = triagem.gatilho({});
+    expect(cfg.kind).toBe("silence");
+    expect(cfg.kind === "silence" && cfg.params.max_enrollments_por_contato).toBe(1);
+    expect(cfg.cancel_on_reply).toBe(true);
+  });
+
+  it("dá folga para a pessoa acrescentar toques no construtor — 15 toques ainda publicam", () => {
+    const extra = Array.from({ length: 15 }, (_, i) => ({
+      ...(i > 0 ? { esperaAntesMs: 2 * DIA_MS } : {}),
+      rotulo: `toque ${i + 1}`,
+      texto: "mensagem de teste com mais de vinte caracteres",
+    }));
+    const r = validateFlowForPublish(montarCadencia({ toques: extra }));
+    expect(r.ok ? [] : r.errors).toEqual([]);
+  });
+
+  it("todo texto abre com saudação e o primeiro nome, e muda de abertura de um toque para o outro", () => {
+    for (const texto of textos) expect(texto).toMatch(/^(Oi|Olá) \{\{primeiro_nome\}\}/);
+    expect(new Set(textos).size).toBe(textos.length);
+    // Duas saudações seguidas iguais com o mesmo corpo seriam o "Entendi, nome" de novo.
+    expect(new Set(textos.map((t) => t.split("{{primeiro_nome}}")[1]!.slice(0, 20))).size).toBeGreaterThan(5);
+  });
+
+  it("com nome, o nome entra; sem nome, a frase continua inteira — nunca `Oi,!` nem marcação crua", () => {
+    for (const modelo of modelosDoNicho("advocacia")) {
+      for (const no of modelo.grafo.nodes) {
+        if (no.type !== "action" || no.config.mode !== "text") continue;
+        const comNome = renderizarTextoDeFollowup(no.config.body, { contact: { name: "Perseu Silva" } });
+        expect(comNome).toMatch(/^(Oi|Olá) Perseu\b/);
+        expect(comNome).not.toContain("{{");
+
+        const semNome = renderizarTextoDeFollowup(no.config.body, { contact: { name: null } });
+        expect(semNome).not.toContain("{{");
+        expect(semNome).toMatch(/^(Oi|Olá)[!,] /);
+        expect(semNome).not.toMatch(/,!|\s,|\s{2}/);
+      }
+    }
   });
 });

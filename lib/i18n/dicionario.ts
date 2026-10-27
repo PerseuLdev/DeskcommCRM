@@ -14219,8 +14219,8 @@ export const DICIONARIO: Traducoes = {
   // Modelos da advocacia (`lib/followup/modelos/advocacia.ts`).
   Triagem: { es: "Triaje" },
   Proposta: { es: "Propuesta" },
-  "A pessoa contou o caso, a conversa parou antes de marcar a consulta e ninguém voltou nela.": {
-    es: "La persona contó su caso, la conversación se detuvo antes de agendar la consulta y nadie la retomó.",
+  "A pessoa contou o caso, a conversa parou antes de marcar a consulta e ninguém voltou nela. Dez toques ao longo de sete meses, espaçados cada vez mais, e uma cadência só por pessoa.": {
+    es: "La persona contó su caso, la conversación se detuvo antes de agendar la consulta y nadie la retomó. Diez toques a lo largo de siete meses, cada vez más espaciados, y una sola cadencia por persona.",
   },
   "Um dia inteiro sem a pessoa responder, com a consulta ainda sem marcar.": {
     es: "Un día entero sin que la persona responda, con la consulta todavía sin agendar.",

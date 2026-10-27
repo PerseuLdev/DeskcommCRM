@@ -25,7 +25,12 @@ import type { FlowGraph, FlowNode, FlowEdge } from "@/lib/followup/graph-schema"
 export interface Toque {
   /** Espera antes de mandar. Ausente = manda assim que o gatilho dispara. */
   esperaAntesMs?: number;
-  /** O texto, exatamente como o paciente lê. Sem variável: o modo `text` não interpola nada. */
+  /**
+   * O texto, exatamente como o paciente lê. O modo `text` interpola `{{primeiro_nome}}` e as
+   * demais marcações de CRM; marcação sem valor some JUNTO com o espaço à esquerda
+   * (`renderizarTextoDeFollowup`). Quem usa nome escreve "Oi {{primeiro_nome}}!" — sem vírgula
+   * antes da marcação, senão sem nome sobra "Oi,!".
+   */
   texto: string;
   /** Rótulo do nó no construtor — é o que a pessoa vê no canvas. */
   rotulo: string;
@@ -156,6 +161,72 @@ export function montarEscada(spec: EscadaSpec): FlowGraph {
     const alvo = proximo.esperaAntesMs !== undefined ? `espera-${i + 2}` : `msg-${i + 2}`;
     edges.push(aresta(`resposta-${i + 1}`, alvo, { type: "branch", branch_id: "no_reply" }));
   });
+
+  return { nodes, edges };
+}
+
+/**
+ * A CADÊNCIA LONGA — mensagem, espera, mensagem, espera, até acabar. Sem nó de resposta.
+ *
+ * Existe porque a escada gasta três "passos que o cliente sente" por toque (mensagem, espera e a
+ * pergunta de resposta) e o publish recusa caminho acima de 30 (`MAX_PATH_STEPS`): 10 toques de
+ * escada já são 29, e a pessoa não conseguiria acrescentar nem um 11º pelo construtor. Sem a
+ * pergunta o toque custa dois, 10 toques são 19 e sobra espaço para ajustar.
+ *
+ * Perder a pergunta não perde a resposta: o gatilho nasce com `cancel_on_reply`, e a reatividade
+ * cancela a inscrição na PRIMEIRA mensagem do cliente — antes de qualquer nó rotear. A pergunta da
+ * escada só roda com `cancel_on_reply` desligado, que não é o desenho de nenhum modelo.
+ *
+ * A espera de um nó vai até 90 dias (`waitConfigSchema`); intervalo maior se faz encadeando duas.
+ */
+export interface CadenciaSpec {
+  toques: Toque[];
+}
+
+export function montarCadencia(spec: CadenciaSpec): FlowGraph {
+  const nodes: FlowNode[] = [];
+  const edges: FlowEdge[] = [];
+  let coluna = 0;
+  const x = () => COLUNA * coluna++;
+  const FIM = "fim-esgotou";
+
+  nodes.push({ id: "inicio", type: "trigger", label: "Início", position: { x: x(), y: 0 }, config: {} });
+  let anterior = "inicio";
+
+  spec.toques.forEach((toque, i) => {
+    const n = i + 1;
+    if (toque.esperaAntesMs !== undefined) {
+      const espera = `espera-${n}`;
+      nodes.push({
+        id: espera,
+        type: "wait",
+        label: rotuloDaEspera(toque.esperaAntesMs),
+        position: { x: x(), y: 0 },
+        config: { mode: "fixed", duration_ms: toque.esperaAntesMs },
+      });
+      edges.push(aresta(anterior, espera));
+      anterior = espera;
+    }
+    const msg = `msg-${n}`;
+    nodes.push({
+      id: msg,
+      type: "action",
+      label: toque.rotulo,
+      position: { x: x(), y: 0 },
+      config: { mode: "text", body: toque.texto },
+    });
+    edges.push(aresta(anterior, msg));
+    anterior = msg;
+  });
+
+  nodes.push({
+    id: FIM,
+    type: "end",
+    label: "Fim: cadência concluída",
+    position: { x: COLUNA * coluna, y: 0 },
+    config: { outcome: "exhausted" },
+  });
+  edges.push(aresta(anterior, FIM));
 
   return { nodes, edges };
 }
