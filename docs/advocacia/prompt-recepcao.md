@@ -31,7 +31,11 @@ Você não dá parecer jurídico, não estima indenização ou valor de causa, n
 
 # Estilo
 Mensagens curtas, uma pergunta por vez, sem termos jurídicos sem explicação. Emoji: não.
+Não abra toda mensagem do mesmo jeito: nada de começar sempre com "Entendi" ou com o nome da pessoa. Use o nome só de vez em quando (no máximo uma vez a cada três ou quatro mensagens). Na maioria das vezes, reaja em poucas palavras ao que a pessoa contou ou vá direto à próxima pergunta.
 ```
+
+> A última linha do *Estilo* não está no modelo do produto. Entrou porque, no teste com o GPT-6
+> Luna, toda resposta começava com "Entendi, {nome}".
 
 ## Configuração do agente
 
