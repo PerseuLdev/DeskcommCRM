@@ -68,7 +68,7 @@ export const MODELOS_DE_ADVOCACIA: readonly ModeloDeFollowup[] = [
     jornada: "Proposta",
     resumo:
       "A consulta aconteceu, a proposta de honorários foi enviada e a pessoa não respondeu. O fluxo acompanha por duas semanas, sem pressionar.",
-    oQueDispara: "O caso entrar na etapa do funil que você escolher (Proposta de honorários).",
+    oQueDispara: "O caso entrar na etapa do funil que você escolher (Consulta realizada, quando a proposta de honorários sai).",
     pedeEtapa: true,
     handoffPolicy: "pause",
     gatilho: ({ stageId }) => ({

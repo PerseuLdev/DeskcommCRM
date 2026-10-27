@@ -40,76 +40,53 @@ A ordem importa: cada passo depende do anterior.
 3. **IA › Provedores**: modelo barato para os auxiliares (roteador, follow-up), modelo bom com
    ferramentas para o atendimento.
 
-### 3.2 Funil "Novos casos"
+### 3.2 Funil "Consultas"
+
+Etapas, vocabulário e campos seguem o modelo de advocacia do produto
+([`nichos.md`](../../.agents/skills/deskcomm-cliente-novo/references/nichos.md), seção
+"Escritório de advocacia"); o preenchido para a Advocacia Modelo está em
+[pacote-advocacia-modelo.md](pacote-advocacia-modelo.md), seção 2.
 
 | Etapa | Passo do agente | O que significa |
 |---|---|---|
 | Novo contato | novo | Chegou mensagem, ninguém respondeu |
 | Já respondi | contatado | Primeiro retorno dado |
 | Entendendo o caso | qualificando | Triagem: área, o que aconteceu, quando, urgência |
-| Consulta marcada | qualificado | Caso com perfil do escritório, consulta na agenda |
-| Proposta de honorários | negociando | Consulta feita, proposta enviada |
-| **Contratado** | ganhou | Contrato de honorários assinado |
-| **Não contratou** | perdeu | Desistiu, fora da área, sem retorno (sempre com motivo) |
+| Consulta agendada | qualificado | Caso com perfil do escritório, consulta na agenda |
+| Consulta realizada | negociando | Consulta feita, proposta de honorários enviada |
+| **Contrato assinado** | ganhou | Contrato de honorários assinado |
+| **Não avançou** | perdeu | Desistiu, fora da área, sem retorno (sempre com motivo) |
 
-**Vocabulário do funil**: cliente = *cliente*, negócio = *caso*, ganhou = *contratado*,
-perdeu = *não contratou*.
+**Vocabulário do funil**: cliente = *cliente*, negócio = *caso*, ganhou = *contrato assinado*,
+perdeu = *não avançou*.
+
+**Campos do caso**: `area_direito` (lista com as áreas atendidas), `urgencia` (Alta/Média/Baixa),
+`numero_processo` (texto, se já houver processo aberto).
 
 **Funil opcional "Clientes ativos"** (acompanhamento, não substitui o sistema processual):
-Contratado → Documentos pendentes → Petição/medida em preparo → Em andamento → Audiência
+Contrato assinado → Documentos pendentes → Petição/medida em preparo → Em andamento → Audiência
 marcada → Decisão/sentença → **Encerrado com êxito** (ganhou) / **Encerrado sem êxito** (perdeu).
-Serve para o escritório enxergar no kanban em que fase está cada cliente.
+Um negócio ganho pode abrir sozinho o card de continuação nesse funil.
 
-**Etiquetas (Configurações › Etiquetas)**, uma por área: `trabalhista`, `família`,
-`previdenciário`, `cível`, `consumidor`, `criminal`, `empresarial`, `tributário`. Mais `urgente`,
-`indicação`, `cliente-antigo`. As etiquetas filtram inbox, funil e métricas por área.
+**Etiquetas**, uma por área: `trabalhista`, `familia`, `previdenciario`, `consumidor` (mais as que
+o escritório atender). Mais `urgente`, `indicacao`, `cliente-antigo`. Filtram inbox, funil e
+relatórios por área.
 
 ### 3.3 Agentes e roteador
 
-**Um agente "Recepção" resolve a maioria dos escritórios.** Com volume, um segundo agente:
+**Um agente "Recepção" resolve escritório de uma área só.** Com mais de uma área, o modelo do
+produto recomenda o **Roteador de Intenção**: um agente por área, cada um com prompt e tipo de
+atendimento próprios. Para a fase de testes da Advocacia Modelo, um agente só.
 
-| Intenção | Exemplos | Vai para |
-|---|---|---|
-| Caso novo | "fui demitido", "quero me divorciar", "negaram meu INSS" | Recepção (triagem) |
-| Já sou cliente | "como está meu processo?", "falei com o Dr. X" | **Pessoa** (secretaria/advogado responsável) |
-| Urgência | "fui preso", "tenho audiência amanhã", "recebi uma intimação" | **Pessoa, imediatamente** |
-| Fallback | qualquer outra coisa | Recepção |
-
-**Prompt da Recepção (preencher pelos campos em `{}`):**
-
-```markdown
-# Quem você é
-Você atende quem procura {nome do escritório}, escritório de advocacia em {cidade} que atua em
-{áreas, em uma frase}. Seu nome é {nome}. Muita gente chega preocupada; fale com calma e respeito.
-
-# O que você faz primeiro
-Entenda, uma pergunta por vez: qual é a situação, em poucas palavras; quando aconteceu; se já
-existe processo ou prazo correndo (intimação, audiência marcada, notificação); cidade; se a pessoa
-já foi cliente do escritório.
-
-# Como você decide o próximo passo
-- A situação é de uma área que o escritório atende: explique que o primeiro passo é uma consulta
-  com um(a) advogado(a), ofereça horários e confirme nome completo e telefone.
-- Existe prazo curto, prisão, audiência ou intimação: diga que uma pessoa da equipe vai falar
-  agora e passe o atendimento.
-- A área não é atendida pelo escritório: diga com educação e, se houver nos materiais, indique a
-  OAB local ou a Defensoria Pública.
-
-# Situações
-- "Tenho direito a...?" / "Vou ganhar?": diga que só a análise do(a) advogado(a), com os
-  documentos, responde isso, e ofereça a consulta.
-- Honorários: o valor é definido na consulta conforme o caso; informe só o que está nos materiais.
-- Pedido de documentos: pode orientar quais levar à consulta, conforme a lista dos materiais.
-
-# Limites
-Você não dá parecer jurídico, não diz se a pessoa tem ou não direito, não promete resultado nem
-prazo de processo, não comenta processo de cliente.
-Chama uma pessoa quando: urgência ou prazo, cliente atual perguntando do processo, reclamação,
-pessoa muito abalada, menor de idade, pedido para falar com advogado específico.
-
-# Estilo
-Curto, uma pergunta por vez, sem juridiquês. Emoji: não.
-```
+- **Prompt**: o do modelo do produto, preenchido em [prompt-recepcao.md](prompt-recepcao.md).
+- **Passar para uma pessoa**: palavras de passagem **só as do padrão**. Não acrescente
+  "advogado", "processo", "audiência": são o vocabulário normal do cliente e quase toda conversa
+  passaria. **Desligue** o interruptor "Passar para uma pessoa quando o cliente falar de assunto
+  jurídico". Quem passa para humano é o prompt (urgência de prazo, risco, pedido de advogado) e o
+  pedido explícito de pessoa, que segue sempre ligado.
+- **Capacidade "casos" ligada**: é o que faz urgência alta abrir fila humana de verdade.
+- **Agenda por área**: um tipo de atendimento por área, com o advogado da área como responsável
+  padrão. O agente não escolhe advogado pelo nome; casa a área com o tipo de atendimento.
 
 ### 3.4 Base de conhecimento, memória e follow-ups
 
@@ -122,19 +99,17 @@ Curto, uma pergunta por vez, sem juridiquês. Emoji: não.
 - **IA › Follow-ups** (publicar e ligar no agente, no campo *follow-ups que arma*):
   - silêncio de 24 h em *Entendendo o caso*: "conseguiu ver os horários para a consulta?";
   - consulta marcada e falta (no-show): oferecer novo horário no dia seguinte;
-  - 3 dias em *Proposta de honorários* sem resposta: "ficou alguma dúvida sobre a proposta?";
-    7 dias: última tentativa e registrar o motivo da perda.
+  - 3 dias em *Consulta realizada* sem resposta à proposta: "ficou alguma dúvida sobre a
+    proposta?"; 7 dias: última tentativa e registrar o motivo da perda.
   - O lembrete da consulta é a **agenda**, não follow-up.
 - **Agenda**: conectar o Google Agenda de cada advogado; tipos de compromisso: *Consulta
   inicial*, *Retorno*, *Reunião com cliente*. Audiências e prazos podem entrar como compromissos
   do advogado para aparecer no mesmo calendário.
 
 ### 3.5 Testar antes de publicar
-Botão **Testar** do agente com estas mensagens; o agente só vai ao ar depois que todas
-respondem como o escritório quer:
-"fui demitido sem justa causa, tenho direito a quê?", "quanto custa a consulta?", "recebi uma
-intimação para audiência amanhã", "sou cliente do Dr. {nome}, como está meu processo?",
-"vocês fazem inventário?", um áudio de 1 minuto contando um caso.
+Botão **Testar** do agente com as mensagens de [prompt-recepcao.md](prompt-recepcao.md), mais um
+áudio de 1 minuto contando um caso. O agente só vai ao ar depois que todas respondem como o
+escritório quer.
 
 ---
 
@@ -148,16 +123,17 @@ intimação para audiência amanhã", "sou cliente do Dr. {nome}, como está meu
 
 ### Início do expediente — 8h30 (advogados)
 1. **Tarefas** filtradas por "minhas": prazos e providências do dia, por data de vencimento.
-2. **Funil "Novos casos" › Consulta marcada**: ler o resumo da triagem que a IA deixou no lead
+2. **Funil "Consultas" › Consulta agendada**: ler o resumo da triagem que a IA deixou no lead
    antes de cada consulta; a pessoa não precisa contar a história de novo.
 
 ### Durante o dia
 - **Depois de cada consulta**, no lead:
   - nota com o resumo do caso, a estratégia e os documentos que faltam;
   - etiqueta da área;
-  - mover para *Proposta de honorários* e enviar a proposta;
+  - mover para *Consulta realizada* e enviar a proposta de honorários;
   - tarefa "acompanhar proposta" para 3 dias (se não usar o follow-up automático).
-- **Contrato assinado**: mover para *Contratado*. Se usar o funil *Clientes ativos*, criar o
+- **Contrato assinado**: mover para *Contrato assinado* e, com o módulo Honorários, registrar o
+  contrato e as parcelas. Se usar o funil *Clientes ativos*, criar o
   cartão lá e as tarefas iniciais (procuração, documentos, petição).
 - **Cliente perguntando do processo**: responder pelo Inbox com o andamento consultado no sistema
   processual e registrar nota no contato. Assim, quem atender depois sabe o que foi dito.
@@ -178,7 +154,7 @@ intimação para audiência amanhã", "sou cliente do Dr. {nome}, como está meu
 **Toda segunda (sócio/gestor, 30 min)**
 - **Métricas**: novos contatos da semana, quantos viraram consulta, quantos viraram contrato,
   por área (etiqueta) e por origem (indicação, Instagram, Google).
-- **Motivos de perda** em *Não contratou*: preço, área não atendida, sumiu, contratou outro.
+- **Motivos de perda** em *Não avançou*: preço, área não atendida, sumiu, contratou outro.
 - Distribuir casos novos sem responsável.
 
 **Toda sexta (quem cuida da IA, 30 min)**
@@ -186,8 +162,9 @@ intimação para audiência amanhã", "sou cliente do Dr. {nome}, como está meu
 - Tempo de resposta e taxa de passagem para humano; consumo/custo de IA (**IA › Uso**).
 
 **Todo mês**
-- **Faturamento**: lançar honorários contratados e mensalidades de clientes de partido
-  (lançamentos recorrentes); conferir o que entrou e o que está em aberto.
+- **Honorários / Faturamento**: conferir as parcelas de honorários (módulo Honorários) e lançar
+  as mensalidades de clientes de partido (lançamentos recorrentes); conferir o que entrou e o que
+  está em aberto.
 - **LGPD › Solicitações**: responder pedidos de acesso/exclusão de dados dentro do prazo.
 - **Auditoria**: conferir acessos e quem mudou o quê (escritório com sigilo precisa disso).
 - Revisar o prompt do agente com base nas execuções do mês (rascunho → testar → publicar).
@@ -206,8 +183,9 @@ Esta seção não é parecer. O escritório deve validar com o Código de Ética
   Disparo e prospecção ativa para quem nunca procurou o escritório podem caracterizar captação
   indevida: deixar **Prospecção** e **Campanhas** fora do uso comercial.
 - **Honorários**: tratar na consulta e na proposta individual, não em mensagem de divulgação.
-- **Sigilo**: cada advogado vê os clientes que o papel permite; nada de print de conversa fora do
-  sistema; a auditoria registra os acessos.
+- **Sigilo**: o CRM ainda não separa casos por área (quem acessa o funil vê todos), então avise o
+  escritório antes de publicar; nada de print de conversa fora do sistema; a auditoria registra
+  os acessos.
 - **Dados sensíveis (LGPD)**: saúde (previdenciário), antecedentes (criminal) e dados de menores
   (família) aparecem no WhatsApp. Pedir só o necessário na triagem, documentos completos na
   consulta, e usar o fluxo de LGPD do produto para pedidos de titulares.
@@ -221,7 +199,9 @@ Esta seção não é parecer. O escritório deve validar com o Código de Ética
 | **Processos** (nº CNJ, vara, partes, polo) | Nota fixa no contato + funil *Clientes ativos* | Módulo de processos no núcleo deste fork (tabela, tela, vínculo com contato) |
 | **Prazos processuais** (dias úteis, feriados forenses) | Tarefa com data e responsável, lançada à mão | Cálculo de prazo no módulo de processos |
 | **Intimações e publicações** (DJe, PJe) | Continua no sistema atual do escritório | Integração com um serviço de monitoramento, criando tarefa automaticamente |
-| **Contrato de honorários e procuração** com assinatura | Envio do PDF pelo Inbox | Integração com assinatura eletrônica: assinou → move para *Contratado* |
+| **Contrato de honorários** (fixo, êxito, misto) e parcelas | **Já existe**: módulo opcional Honorários (Administração › Módulos) | — |
+| **Procuração e contrato com assinatura eletrônica** | Envio do PDF pelo Inbox; campo de arquivo no caso guarda o documento | Integração com assinatura eletrônica: assinou → move para *Contrato assinado* |
+| **Sigilo entre áreas** (permissão por funil) | Avisar o escritório; um funil por área se precisar separar | Permissão por funil no produto |
 | **Controle de horas** (timesheet) | Fora do CRM | Lançamento de horas por caso |
 | **Portal do cliente** ("como está meu processo") | Secretaria responde no Inbox | Agente com leitura do módulo de processos responde sozinho |
 

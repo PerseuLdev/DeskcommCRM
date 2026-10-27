@@ -14228,8 +14228,8 @@ export const DICIONARIO: Traducoes = {
   "A consulta aconteceu, a proposta de honorários foi enviada e a pessoa não respondeu. O fluxo acompanha por duas semanas, sem pressionar.": {
     es: "La consulta ya ocurrió, se envió la propuesta de honorarios y la persona no respondió. El flujo da seguimiento durante dos semanas, sin presionar.",
   },
-  "O caso entrar na etapa do funil que você escolher (Proposta de honorários).": {
-    es: "Que el caso entre en la etapa del embudo que elijas (Propuesta de honorarios).",
+  "O caso entrar na etapa do funil que você escolher (Consulta realizada, quando a proposta de honorários sai).": {
+    es: "Que el caso entre en la etapa del embudo que elijas (Consulta realizada, cuando sale la propuesta de honorarios).",
   },
   "A falta foi confirmada na agenda e o horário ficou vago. O fluxo oferece outra data em vez de deixar a pessoa sumir.": {
     es: "Se confirmó en la agenda la inasistencia y el horario quedó libre. El flujo ofrece otra fecha en lugar de dejar que la persona desaparezca.",
