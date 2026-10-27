@@ -25,6 +25,11 @@ describe("catálogo de modelos de follow-up", () => {
   it("tem as quatro jornadas de clínica, com id e nome únicos", () => {
     const clinica = modelosDoNicho("clinica");
     expect(clinica.map((m) => m.jornada)).toEqual(["Consulta", "Exame", "Cirurgia", "Falta"]);
+    expect(modelosDoNicho("advocacia").map((m) => m.jornada)).toEqual([
+      "Triagem",
+      "Proposta",
+      "Falta",
+    ]);
     expect(new Set(MODELOS_DE_FOLLOWUP.map((m) => m.id)).size).toBe(MODELOS_DE_FOLLOWUP.length);
     // `followup_flow_pointers` tem `unique (organization_id, name)`: dois
     // modelos com o mesmo nome fariam o segundo bater 23505 na mesma org.

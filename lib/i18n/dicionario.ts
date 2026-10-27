@@ -11494,6 +11494,27 @@ export const DICIONARIO: Traducoes = {
   "Alguém confirmar na agenda que o paciente não compareceu.": {
     es: "Que alguien confirme en la agenda que el paciente no asistió.",
   },
+  // Modelos da advocacia (`lib/followup/modelos/advocacia.ts`).
+  Triagem: { es: "Triaje" },
+  Proposta: { es: "Propuesta" },
+  "A pessoa contou o caso, a conversa parou antes de marcar a consulta e ninguém voltou nela.": {
+    es: "La persona contó su caso, la conversación se detuvo antes de agendar la consulta y nadie la retomó.",
+  },
+  "Um dia inteiro sem a pessoa responder, com a consulta ainda sem marcar.": {
+    es: "Un día entero sin que la persona responda, con la consulta todavía sin agendar.",
+  },
+  "A consulta aconteceu, a proposta de honorários foi enviada e a pessoa não respondeu. O fluxo acompanha por duas semanas, sem pressionar.": {
+    es: "La consulta ya ocurrió, se envió la propuesta de honorarios y la persona no respondió. El flujo da seguimiento durante dos semanas, sin presionar.",
+  },
+  "O caso entrar na etapa do funil que você escolher (Proposta de honorários).": {
+    es: "Que el caso entre en la etapa del embudo que elijas (Propuesta de honorarios).",
+  },
+  "A falta foi confirmada na agenda e o horário ficou vago. O fluxo oferece outra data em vez de deixar a pessoa sumir.": {
+    es: "Se confirmó en la agenda la inasistencia y el horario quedó libre. El flujo ofrece otra fecha en lugar de dejar que la persona desaparezca.",
+  },
+  "Alguém confirmar na agenda que a pessoa não compareceu.": {
+    es: "Que alguien confirme en la agenda que la persona no asistió.",
+  },
   // O aviso da Central quando nenhum agente arma o fluxo.
   "Um follow-up está publicado e não está disparando": {
     es: "Hay un follow-up publicado que no se dispara",
